@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>London ER waits</title>
+<style>
+  :root { --bg:#0e1a17; --card:#f6f3ec; --ink:#1a1a16; --muted:#5c584e; }
+  * { box-sizing: border-box; }
+  body { margin:0; font:17px/1.4 "Segoe UI", Helvetica, Arial, sans-serif; background:var(--bg); color:var(--ink); }
+  header { padding:18px 16px 8px; color:#f6f3ec; }
+  header h1 { font-size:22px; margin:0 0 4px; }
+  header p, .note { margin:0; color:#c9d5d0; font-size:14px; }
+  main { padding:12px 14px 28px; max-width:520px; }
+  article { background:var(--card); border-radius:12px; padding:14px 14px 12px; margin:0 0 10px; }
+  h2 { font-size:16px; margin:0; }
+  .city { color:var(--muted); font-size:13px; margin:2px 0 8px; }
+  .wait { font-size:28px; font-weight:700; letter-spacing:-0.02em; }
+  .hours, .read, .drive { margin:6px 0 0; font-size:14px; color:var(--muted); }
+  .total { font-size:16px; font-weight:650; color:var(--ink); margin:8px 0 0; }
+  .note { margin-top:12px; }
+  h2.section { color:#f6f3ec; margin:18px 0 10px; font-size:18px; }
+  .note a { color:#f3d48a; }
+  .closed { color:#8a2e24; }
+  #status { color:#f3d48a; }
+  article a { color:#1f4d40; }
+</style>
+</head>
+<body>
+<!--
+Failure behaviour: if a later fetch of the LHSC wait pages fails, keep the last good numbers in this file and show the error time in #status. Do not clear the waits.
+This snapshot was read 7:56 p.m. PT, October 3, 2026 from:
+https://www.lhsc.on.ca/adult-ed/emergency-department-wait-times
+  University Hospital Emergency Department: 4 Hours (shown as 4 hours)
+  Victoria Hospital Emergency Department: 9.75 Hours (shown as 9 hours 45 minutes)
+https://www.lhsc.on.ca/emergency-department/childrens-hospital-emergency-department-wait-times
+  Children's Hospital Emergency Department: 2 Hours (shown as 2 hours)
+Adult wait page does not state emergency department hours. Do not invent 24-hour hours for University Hospital or Victoria Hospital.
+Children's page states: The ED at Children’s Hospital is open 24 hours, every day of the year.
+Coordinates (Nominatim): University Hospital 43.0130061, -81.2749802 (339 Windermere Road). Victoria Hospital 42.9602596, -81.2254716 (800 Commissioners Road East). Children's ED is at Victoria Hospital and uses those coordinates.
+-->
+<header>
+  <h1>London ER waits</h1>
+  <p class="note"><a href="https://buymeacoffee.com/kylethomas" target="_blank" rel="noopener">Buy me a coffee</a>. Tip for this page. Not a hospital payment.</p>
+  <p class="note" id="updated">Last updated 7:56 p.m. PT, October 3, 2026</p>
+  <p id="status">From LHSC</p>
+</header>
+<main>
+  <article>
+    <h2>University Hospital</h2>
+    <p class="city">Adult emergency</p>
+    <p class="wait" id="uh">4 hours</p>
+    <p class="drive" id="uh-drive"></p>
+    <p class="hours">Hours are not stated on the LHSC adult emergency wait page.</p>
+    <p class="read" id="uh-read">Read 7:56 p.m. PT, October 3, 2026</p>
+  </article>
+  <article>
+    <h2>Victoria Hospital</h2>
+    <p class="city">Adult emergency</p>
+    <p class="wait" id="vh">9 hours 45 minutes</p>
+    <p class="drive" id="vh-drive"></p>
+    <p class="hours">Hours are not stated on the LHSC adult emergency wait page.</p>
+    <p class="read" id="vh-read">Read 7:56 p.m. PT, October 3, 2026</p>
+  </article>
+  <article>
+    <h2>Children's Hospital Emergency Department</h2>
+    <p class="city">Kids' emergency</p>
+    <p class="wait" id="che">2 hours</p>
+    <p class="drive" id="che-drive"></p>
+    <p class="hours">"The ED at Children’s Hospital is open 24 hours, every day of the year." <a href="https://www.lhsc.on.ca/emergency-department/childrens-hospital-emergency-department-wait-times">LHSC children's emergency wait page</a></p>
+    <p class="read" id="che-read">Read 7:56 p.m. PT, October 3, 2026</p>
+  </article>
+  <p class="note">Waits are estimates for non-urgent visits. Serious cases jump the queue. Call 911 for an emergency.</p>
+  <p class="note"><a href="https://buymeacoffee.com/kylethomas" target="_blank" rel="noopener">Buy me a coffee</a>. A personal tip for this page. Not a hospital payment, and not a charity receipt.</p>
+  <p class="note">Source: <a href="https://www.lhsc.on.ca/adult-ed/emergency-department-wait-times">LHSC adult emergency department wait times</a> and <a href="https://www.lhsc.on.ca/emergency-department/childrens-hospital-emergency-department-wait-times">LHSC Children's Hospital emergency department wait times</a>.</p>
+</main>
+<script>
+const SNAP = "7:56 p.m. PT, October 3, 2026";
+const ADULT_URL = "https://www.lhsc.on.ca/adult-ed/emergency-department-wait-times";
+const CHILD_URL = "https://www.lhsc.on.ca/emergency-department/childrens-hospital-emergency-department-wait-times";
+const IDS = { uh: "<!--Start:UHWaitTimeValue-->", vh: "<!--Start:VHWaitTimeValue-->", che: "<!--Start:CHWaitTimeValue-->" };
+const ENDS = { uh: "<!--End:UHWaitTimeValue-->", vh: "<!--End:VHWaitTimeValue-->", che: "<!--End:CHWaitTimeValue-->" };
+function stampNow() {
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone: "America/Vancouver",
+    hour: "numeric",
+    minute: "2-digit",
+    hour12: true,
+    month: "long",
+    day: "numeric",
+    year: "numeric"
+  }).formatToParts(new Date());
+  const get = t => parts.find(p => p.type === t).value;
+  const ap = get("dayPeriod").toLowerCase() === "am" ? "a.m." : "p.m.";
+  return get("hour") + ":" + get("minute") + " " + ap + " PT, " + get("month") + " " + get("day") + ", " + get("year");
+}
+function grab(html, start, end) {
+  const a = html.indexOf(start);
+  if (a < 0) return null;
+  const b = html.indexOf(end, a + start.length);
+  if (b < 0) return null;
+  return html.slice(a + start.length, b).replace(/<[^>]+>/g, "").replace(/\s+/g, " ").trim();
+}
+function formatWait(raw) {
+  const s = raw.replace(/\s+/g, " ").trim();
+  let m = s.match(/^(\d+(?:\.\d+)?)\s*hours?(?:\s+(\d+)\s*minutes?)?$/i);
+  if (!m) {
+    const only = s.match(/^(\d+)\s*minutes?$/i);
+    if (!only) return s;
+    const mins = Number(only[1]);
+    return mins + (mins === 1 ? " minute" : " minutes");
+  }
+  const total = Math.round(Number(m[1]) * 60) + (m[2] ? Number(m[2]) : 0);
+  const h = Math.floor(total / 60);
+  const mins = total % 60;
+  const bits = [];
+  if (h) bits.push(h + (h === 1 ? " hour" : " hours"));
+  if (mins) bits.push(mins + (mins === 1 ? " minute" : " minutes"));
+  return bits.length ? bits.join(" ") : "0 minutes";
+}
+let lastPos = null;
+fetch(ADULT_URL, { cache: "no-store" })
+  .then(r => {
+    if (!r.ok) throw new Error("adult HTTP " + r.status);
+    return r.text();
+  })
+  .then(adultHtml => fetch(CHILD_URL, { cache: "no-store" }).then(r => {
+    if (!r.ok) throw new Error("child HTTP " + r.status);
+    return r.text().then(childHtml => ({ adultHtml, childHtml }));
+  }))
+  .then(({ adultHtml, childHtml }) => {
+    const found = {
+      uh: grab(adultHtml, IDS.uh, ENDS.uh),
+      vh: grab(adultHtml, IDS.vh, ENDS.vh),
+      che: grab(childHtml, IDS.che, ENDS.che)
+    };
+    const missing = Object.entries(found).filter(([, v]) => !v).map(([k]) => k);
+    if (missing.length) throw new Error("missing " + missing.join(", "));
+    const stamp = stampNow();
+    Object.entries(found).forEach(([id, raw]) => {
+      const el = document.getElementById(id);
+      const text = formatWait(raw);
+      el.textContent = text;
+      el.classList.toggle("closed", /closed/i.test(text));
+      document.getElementById(id + "-read").textContent = "Read " + stamp;
+    });
+    document.getElementById("updated").textContent = "Last updated " + stamp;
+    document.getElementById("status").textContent = "Read just now from LHSC.";
+    if (lastPos) addDrive(lastPos.lat, lastPos.lon).catch(() => {});
+  })
+  .catch(() => {
+    document.getElementById("status").textContent = "Live read failed at " + stampNow() + ". Last good numbers are still showing, read " + SNAP + ".";
+  });
+
+const PLACES = {
+  uh: { lon: -81.2749802, lat: 43.0130061, name: "University Hospital" },
+  vh: { lon: -81.2254716, lat: 42.9602596, name: "Victoria Hospital" },
+  che: { lon: -81.2254716, lat: 42.9602596, name: "Children's Hospital ED" }
+};
+function waitMinutes(text) {
+  if (/closed/i.test(text)) return null;
+  const h = text.match(/(\d+)\s*hours?/i);
+  const m = text.match(/(\d+)\s*minutes?/i);
+  if (!h && !m) return null;
+  return (h ? Number(h[1]) : 0) * 60 + (m ? Number(m[1]) : 0);
+}
+function fmt(mins) {
+  const h = Math.floor(mins / 60), m = mins % 60;
+  if (h && m) return h + " h " + m + " min";
+  if (h) return h + " h";
+  return m + " min";
+}
+function showRaw(msg) {
+  document.getElementById("drive-note").textContent = msg;
+}
+function addDrive(lat, lon) {
+  // Show every department. Do not hide a farther hospital.
+  const jobs = Object.entries(PLACES).map(([id, place]) => {
+    const url = "https://router.project-osrm.org/route/v1/driving/" +
+      lon + "," + lat + ";" + place.lon + "," + place.lat + "?overview=false";
+    return fetch(url).then(r => {
+      if (!r.ok) throw new Error("route " + r.status);
+      return r.json();
+    }).then(data => {
+      const sec = data && data.routes && data.routes[0] && data.routes[0].duration;
+      if (!sec && sec !== 0) throw new Error("no route");
+      const drive = Math.max(1, Math.round(sec / 60));
+      const el = document.getElementById(id);
+      const line = document.getElementById(id + "-drive");
+      const wait = waitMinutes(el.textContent);
+      if (wait == null) {
+        line.textContent = "Drive about " + fmt(drive) + ". No total while closed.";
+        return;
+      }
+      line.innerHTML = "Drive about " + fmt(drive) + ". <span class=\"total\">About " + fmt(wait + drive) + " with the drive.</span>";
+    });
+  });
+  return Promise.all(jobs);
+}
+const note = document.createElement("p");
+note.className = "note";
+note.id = "drive-note";
+note.textContent = "Asking for your location to add drive time.";
+document.querySelector("main").insertBefore(note, document.querySelector("main .note"));
+if (!navigator.geolocation) {
+  showRaw("Location is not available. Showing the ER wait only.");
+} else {
+  navigator.geolocation.getCurrentPosition(pos => {
+    lastPos = { lat: pos.coords.latitude, lon: pos.coords.longitude };
+    addDrive(lastPos.lat, lastPos.lon)
+      .then(() => { note.textContent = "Drive time is from your location just now. It is added only when the department shows a wait."; })
+      .catch(() => { showRaw("Drive time could not be calculated. Showing the ER wait only."); });
+  }, () => {
+    showRaw("Location was denied. Showing the ER wait only.");
+  }, { enableHighAccuracy: false, timeout: 8000, maximumAge: 60000 });
+}
+</script>
+</body>
+</html>
