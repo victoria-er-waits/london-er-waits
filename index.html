@@ -29,12 +29,12 @@
 <body>
 <!--
 Failure behaviour: if a later fetch of the LHSC wait pages fails, keep the last good numbers in this file and show the error time in #status. Do not clear the waits.
-This snapshot was read 11:58 p.m. PT, October 3, 2026 from:
+This snapshot was read 12:20 a.m. PT, October 4, 2026 from:
 https://www.lhsc.on.ca/adult-ed/emergency-department-wait-times
-  University Hospital Emergency Department: 4.25 Hours (shown as 4 hours 15 minutes)
-  Victoria Hospital Emergency Department: 13.25 Hours (shown as 13 hours 15 minutes)
+  University Hospital Emergency Department: 4.5 Hours (shown as 4 hours 30 minutes)
+  Victoria Hospital Emergency Department: 13.5 Hours (shown as 13 hours 30 minutes)
 https://www.lhsc.on.ca/emergency-department/childrens-hospital-emergency-department-wait-times
-  Children's Hospital Emergency Department: 3.75 Hours (shown as 3 hours 45 minutes)
+  Children's Hospital Emergency Department: 4 Hours (shown as 4 hours)
 Adult wait page does not state emergency department hours. Do not invent 24-hour hours for University Hospital or Victoria Hospital.
 Children's page states: The ED at Children’s Hospital is open 24 hours, every day of the year.
 Coordinates (Nominatim): University Hospital 43.0130061, -81.2749802 (339 Windermere Road). Victoria Hospital 42.9602596, -81.2254716 (800 Commissioners Road East). Children's ED is at Victoria Hospital and uses those coordinates.
@@ -42,40 +42,40 @@ Coordinates (Nominatim): University Hospital 43.0130061, -81.2749802 (339 Winder
 <header>
   <h1>London ER waits</h1>
   <p class="note"><a href="https://buymeacoffee.com/kylethomas" target="_blank" rel="noopener">Buy me a coffee</a>. Tip for this page. Not a hospital payment.</p>
-  <p class="note" id="updated">Last updated 11:58 p.m. PT, October 3, 2026</p>
+  <p class="note" id="updated">Last updated 12:20 a.m. PT, October 4, 2026</p>
   <p id="status">From LHSC</p>
 </header>
 <main>
   <article>
     <h2>University Hospital</h2>
     <p class="city">Adult emergency</p>
-    <p class="wait" id="uh">4 hours 15 minutes</p>
+    <p class="wait" id="uh">4 hours 30 minutes</p>
     <p class="drive" id="uh-drive"></p>
     <p class="hours">Hours are not stated on the LHSC adult emergency wait page.</p>
-    <p class="read" id="uh-read">Read 11:58 p.m. PT, October 3, 2026</p>
+    <p class="read" id="uh-read">Read 12:20 a.m. PT, October 4, 2026</p>
   </article>
   <article>
     <h2>Victoria Hospital</h2>
     <p class="city">Adult emergency</p>
-    <p class="wait" id="vh">13 hours 15 minutes</p>
+    <p class="wait" id="vh">13 hours 30 minutes</p>
     <p class="drive" id="vh-drive"></p>
     <p class="hours">Hours are not stated on the LHSC adult emergency wait page.</p>
-    <p class="read" id="vh-read">Read 11:58 p.m. PT, October 3, 2026</p>
+    <p class="read" id="vh-read">Read 12:20 a.m. PT, October 4, 2026</p>
   </article>
   <article>
     <h2>Children's Hospital Emergency Department</h2>
     <p class="city">Kids' emergency</p>
-    <p class="wait" id="che">3 hours 45 minutes</p>
+    <p class="wait" id="che">4 hours</p>
     <p class="drive" id="che-drive"></p>
     <p class="hours">"The ED at Children’s Hospital is open 24 hours, every day of the year." <a href="https://www.lhsc.on.ca/emergency-department/childrens-hospital-emergency-department-wait-times">LHSC children's emergency wait page</a></p>
-    <p class="read" id="che-read">Read 11:58 p.m. PT, October 3, 2026</p>
+    <p class="read" id="che-read">Read 12:20 a.m. PT, October 4, 2026</p>
   </article>
   <p class="note">Waits are estimates for non-urgent visits. Serious cases jump the queue. Call 911 for an emergency.</p>
   <p class="note"><a href="https://buymeacoffee.com/kylethomas" target="_blank" rel="noopener">Buy me a coffee</a>. A personal tip for this page. Not a hospital payment, and not a charity receipt.</p>
   <p class="note">Source: <a href="https://www.lhsc.on.ca/adult-ed/emergency-department-wait-times">LHSC adult emergency department wait times</a> and <a href="https://www.lhsc.on.ca/emergency-department/childrens-hospital-emergency-department-wait-times">LHSC Children's Hospital emergency department wait times</a>.</p>
 </main>
 <script>
-const SNAP = "11:58 p.m. PT, October 3, 2026";
+const SNAP = "12:20 a.m. PT, October 4, 2026";
 const ADULT_URL = "https://www.lhsc.on.ca/adult-ed/emergency-department-wait-times";
 const CHILD_URL = "https://www.lhsc.on.ca/emergency-department/childrens-hospital-emergency-department-wait-times";
 const IDS = { uh: "<!--Start:UHWaitTimeValue-->", vh: "<!--Start:VHWaitTimeValue-->", che: "<!--Start:CHWaitTimeValue-->" };
